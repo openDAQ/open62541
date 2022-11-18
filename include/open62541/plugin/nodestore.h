@@ -154,6 +154,10 @@ typedef struct {
                                          const UA_NodeId *targetParentNodeId,
                                          const UA_NodeId *referenceTypeId,
                                          UA_NodeId *targetNodeId);
+
+    /* @param context Context that can be used used by NodeLifecycle callbacks.
+     */
+    void *context;
 } UA_GlobalNodeLifecycle;
 
 /**
