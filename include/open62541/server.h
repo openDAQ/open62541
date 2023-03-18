@@ -89,6 +89,7 @@ struct UA_ServerConfig {
     void *context; /* Used to attach custom data to a server config. This can
                     * then be retrieved e.g. in a callback that forwards a
                     * pointer to the server. */
+    void (*displayNameChanged)(UA_Server *server, UA_NodeId *nodeId, UA_LocalizedText *newDisplayName);
 
     /**
      * Server Description

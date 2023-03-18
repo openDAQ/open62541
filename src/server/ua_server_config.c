@@ -13,6 +13,8 @@ UA_ServerConfig_clean(UA_ServerConfig *config) {
     if(!config)
         return;
 
+    config->displayNameChanged = 0;
+
     /* Server Description */
     UA_BuildInfo_clear(&config->buildInfo);
     UA_ApplicationDescription_clear(&config->applicationDescription);
