@@ -80,9 +80,21 @@ connection_write(UA_Connection *connection, UA_ByteString *buf) {
                     UA_ByteString_clear(buf);
                     return UA_STATUSCODE_BADCONNECTIONCLOSED;
                 }
+
+                UA_DateTime poll_start = UA_DateTime_nowMonotonic();
+                UA_DateTime poll_timeout = 1000 * UA_DATETIME_MSEC;
                 int poll_ret;
+
                 do {
-                    poll_ret = UA_poll (poll_fd, 1, 1000);
+                    poll_ret = UA_poll(poll_fd, 1, 100);
+                    if(poll_ret <= 0)  {
+                        UA_DateTime elapsed_time = UA_DateTime_nowMonotonic() - poll_start;
+                        if(elapsed_time > poll_timeout) {
+                            connection->close(connection);
+                            UA_ByteString_clear(buf);
+                            return UA_STATUSCODE_BADCONNECTIONCLOSED;
+                        }
+                    }
                 } while (poll_ret == 0 || (poll_ret < 0 && UA_ERRNO == UA_INTERRUPTED));
             }
         } while(n < 0);
