@@ -301,6 +301,16 @@ callWithMethodAndObject(UA_Server *server, UA_Session *session,
         outputArgsSize = outputArguments->value.data.value.value.arrayLength;
     result->outputArguments = (UA_Variant*)
         UA_Array_new(outputArgsSize, &UA_TYPES[UA_TYPES_VARIANT]);
+
+    if (outputArguments)
+    {
+        UA_Argument* argument = (UA_Argument*) outputArguments->value.data.value.value.data;
+        for (size_t i = 0; i < outputArgsSize; ++i) {
+            result->outputArguments[i].type = UA_findDataTypeWithCustom(&argument->dataType, server->config.customDataTypes);
+            argument++;
+        }
+    }
+
     if(!result->outputArguments) {
         result->statusCode = UA_STATUSCODE_BADOUTOFMEMORY;
         return;
