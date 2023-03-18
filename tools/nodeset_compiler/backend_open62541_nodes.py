@@ -335,6 +335,16 @@ def generateExtensionObjectSubtypeCode(node, parent, nodeset, global_var_code, i
         logger.debug("Encoding of field " + memberName + " is " + str(subv.encodingRule) + "defined by " + str(encField))
         if not subv.isNone():
             # Some values can be optional
+            # Lots of xml files generate their object tpyes and so in namespace 1. Because of this, by using
+            # ExtensionObject, the value for the NodeId has its NodeId and uses namespace 1. But, the parent node,
+            # has actual the truth ns for the code generation. Since the ns depends on the namespace map and how many
+            # nodesets are used in the generation. But this is only true, when parent and ExtensionObject are in the same ns.
+            # ToDo what happens if a nodset depends on enums and structures of another nodeset. Is then 1 as well always true?
+            # The real fix would be that is is directly correctly stored in ExtensionObject, but I have
+            # no clue how to do it, like it is is done for VariableNodes (the parent node in this case) and so on.
+            if isinstance(subv, NodeId) :
+                if subv.ns == 1:
+                    subv.ns = parent.id.ns
             valueName = instanceName + accessor + memberName
             code.append(generateNodeValueCode(valueName,
                         subv, instanceName,valueName, global_var_code, asIndirect=False, nodeset=nodeset, encRule=encRule))
