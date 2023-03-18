@@ -326,7 +326,8 @@ ServerNetworkLayerWS_listen(UA_ServerNetworkLayer *nl, UA_Server *server,
     /*  N.B.: lws_service documentation says:
             "Since v3.2 internally the timeout wait is ignored, the lws scheduler
              is smart enough to stay asleep until an event is queued." */
-    lws_service(layer->context, timeout);
+    //lws_service(layer->context, timeout);
+    lws_service(layer->context, -1);  // TODO workaround: single select for all network layers
     return UA_STATUSCODE_GOOD;
 }
 

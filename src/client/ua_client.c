@@ -690,11 +690,18 @@ clientExecuteRepeatedCallback(void *executionApplication, UA_ApplicationCallback
 
 UA_StatusCode
 UA_Client_run_iterate(UA_Client *client, UA_UInt32 timeout) {
+    return UA_Client_run_iterate_timer_tasks(client, timeout, UA_TRUE);
+}
+
+UA_StatusCode
+UA_Client_run_iterate_timer_tasks(UA_Client *client, UA_UInt32 timeout, UA_Boolean executeTimerTasks) {
     /* Process timed (repeated) jobs */
     UA_DateTime now = UA_DateTime_nowMonotonic();
-    UA_DateTime maxDate =
-        UA_Timer_process(&client->timer, now, (UA_TimerExecutionCallback)
-                         clientExecuteRepeatedCallback, client);
+    UA_DateTime maxDate = now;
+    if(executeTimerTasks)
+        maxDate = UA_Timer_process(&client->timer, now,
+                         (UA_TimerExecutionCallback)clientExecuteRepeatedCallback,
+                         client);
     if(maxDate > now + ((UA_DateTime)timeout * UA_DATETIME_MSEC))
         maxDate = now + ((UA_DateTime)timeout * UA_DATETIME_MSEC);
 

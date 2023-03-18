@@ -1271,8 +1271,8 @@ connectSync(UA_Client *client) {
         now = UA_DateTime_nowMonotonic();
         if(maxDate < now)
             return UA_STATUSCODE_BADTIMEOUT;
-        retval = UA_Client_run_iterate(client,
-                                       (UA_UInt32)((maxDate - now) / UA_DATETIME_MSEC));
+        retval = UA_Client_run_iterate_timer_tasks(
+            client, (UA_UInt32)((maxDate - now) / UA_DATETIME_MSEC), false);
     }
 
     return retval;
