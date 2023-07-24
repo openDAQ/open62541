@@ -225,7 +225,11 @@ checkAdjustMonitoredItemParams(UA_Server *server, UA_Session *session,
     }
         
     /* Adjust sampling interval */
-    if(params->samplingInterval < 0.0) {
+
+    const bool samplingIntervalSameAsPublishInterval = params->samplingInterval < 0;
+    const bool samplingIntervalFastestPossible = params->samplingInterval == 0;
+
+    if(samplingIntervalSameAsPublishInterval) {
         /* A negative number indicates that the sampling interval is the
          * publishing interval of the Subscription. */
         if(!mon->subscription) {
@@ -243,7 +247,7 @@ checkAdjustMonitoredItemParams(UA_Server *server, UA_Session *session,
                 params->samplingInterval = -1.0;
             }
         }
-    } else {
+    } else if(!samplingIntervalFastestPossible) {
         /* Adjust positive sampling interval to lie within the limits */
         UA_BOUNDEDVALUE_SETWBOUNDS(server->config.samplingIntervalLimits,
                                    params->samplingInterval, params->samplingInterval);
