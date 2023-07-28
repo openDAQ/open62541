@@ -420,10 +420,10 @@ useVariableTypeAttributes(UA_Server *server, UA_Session *session,
         UA_DataValue_init(&v);
         retval = readValueAttribute(server, session, (const UA_VariableNode*)vt, &v);
         if(retval == UA_STATUSCODE_GOOD && v.hasValue) {
-	    /// see https://github.com/open62541/open62541/pull/5906
+            /// see https://github.com/open62541/open62541/pull/5906
             if (v.value.type->typeKind != UA_DATATYPEKIND_EXTENSIONOBJECT) {
                 retval = writeValueAttribute(server, session, &node->head.nodeId, &v.value);
-	    }
+            }
         }
         UA_DataValue_clear(&v);
 
