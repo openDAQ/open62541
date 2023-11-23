@@ -1551,15 +1551,21 @@ copyAttributeIntoNode(UA_Server *server, UA_Session *session,
             retval = updateLocalizedText((const UA_LocalizedText *)value,
                                      &node->head.displayName);
             if ((retval == UA_STATUSCODE_GOOD) && hasChanged && (server->config.displayNameChanged != NULL)) {
-                server->config.displayNameChanged(server, &node->head.nodeId, &node->head.displayName);
+                server->config.displayNameChanged(server, &node->head.nodeId, &node->head.displayName, node->head.context);
             }
         }
         break;
     case UA_ATTRIBUTEID_DESCRIPTION:
         CHECK_USERWRITEMASK(UA_WRITEMASK_DESCRIPTION);
         CHECK_DATATYPE_SCALAR(LOCALIZEDTEXT);
-        retval = updateLocalizedText((const UA_LocalizedText *)value,
+        {
+            bool hasChanged = !UA_String_equal(&((const UA_LocalizedText*)value)->text, &node->head.description.text);
+            retval = updateLocalizedText((const UA_LocalizedText *)value,
                                      &node->head.description);
+            if ((retval == UA_STATUSCODE_GOOD) && hasChanged && (server->config.descriptionChanged != NULL)) {
+                server->config.descriptionChanged(server, &node->head.nodeId, &node->head.description, node->head.context);
+            }
+        }
         break;
     case UA_ATTRIBUTEID_WRITEMASK:
         CHECK_USERWRITEMASK(UA_WRITEMASK_WRITEMASK);
