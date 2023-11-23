@@ -14,6 +14,7 @@ UA_ServerConfig_clean(UA_ServerConfig *config) {
         return;
 
     config->displayNameChanged = 0;
+    config->descriptionChanged = 0;
 
     /* Server Description */
     UA_BuildInfo_clear(&config->buildInfo);
