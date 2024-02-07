@@ -427,36 +427,35 @@ ServerNetworkLayerTCP_start(UA_ServerNetworkLayer *nl, const UA_Logger *logger,
     }
     char portno[6];
     UA_snprintf(portno, 6, "%d", layer->port);
-    struct addrinfo hints, *res;
-    memset(&hints, 0, sizeof hints);
-#if UA_IPV6
-    hints.ai_family = AF_UNSPEC; /* allow IPv4 and IPv6 */
-#else
-    hints.ai_family = AF_INET;   /* enforce IPv4 only */
-#endif
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-#ifdef AI_ADDRCONFIG
-    hints.ai_flags |= AI_ADDRCONFIG;
-#endif
-    hints.ai_protocol = IPPROTO_TCP;
-    int retcode = UA_getaddrinfo(customHostname->length ? hostname : NULL,
-                                 portno, &hints, &res);
-    if(retcode != 0) {
-        UA_LOG_SOCKET_ERRNO_GAI_WRAP(UA_LOG_WARNING(layer->logger, UA_LOGCATEGORY_NETWORK,
-                                                    "getaddrinfo lookup of %s failed with error %d - %s", hostname, retcode, errno_str));
-        return UA_STATUSCODE_BADINTERNALERROR;
-    }
 
-    /* There might be serveral addrinfos (for different network cards,
-     * IPv4/IPv6). Add a server socket for all of them. */
-    struct addrinfo *ai = res;
-    for(layer->serverSocketsSize = 0;
-        layer->serverSocketsSize < FD_SETSIZE && ai != NULL;
-        ai = ai->ai_next) {
-        addServerSocket(layer, ai);
-    }
-    UA_freeaddrinfo(res);
+    struct addrinfo ai;
+    memset(&ai, 0, sizeof(ai));
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol = IPPROTO_TCP;
+
+#if UA_IPV6
+    struct sockaddr_in6 addr6;
+    memset(&addr6, 0, sizeof(addr6));
+    addr6.sin6_family = AF_INET6;
+    addr6.sin6_addr = in6addr_any;
+    addr6.sin6_port = htons(layer->port);
+
+    ai.ai_addr = (struct sockaddr*)&addr6;
+    ai.ai_addrlen = sizeof(addr6);
+    ai.ai_family = AF_INET6;
+    addServerSocket(layer, &ai);
+#endif
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(layer->port);
+
+    ai.ai_addr = (struct sockaddr*)&addr;
+    ai.ai_addrlen = sizeof(addr);
+    ai.ai_family = AF_INET;
+    addServerSocket(layer, &ai);
 
     if(layer->serverSocketsSize == 0) {
         return UA_STATUSCODE_BADCOMMUNICATIONERROR;
